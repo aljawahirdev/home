@@ -3,6 +3,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -602,7 +603,54 @@
     display: none;
   }
 }
+/* تنسيقات معرض الصور المتحرك */
+.slider-section { padding: 50px 0; background: var(--section-bg); }
+.slider-wrapper { 
+  max-width: 1180px; 
+  margin: auto; 
+  position: relative; 
+  overflow: hidden; 
+  border-radius: var(--radius); 
+  box-shadow: var(--shadow); 
+  border: 1px solid rgba(41, 158, 157, 0.12);
+}
+.visual-slider { position: relative; height: 600px; }
+.slide-item { position: absolute; inset: 0; opacity: 0; transition: opacity .8s ease-in-out; }
+.slide-item.active { opacity: 1; z-index: 2; }
+.slide-item img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+.controls { 
+  position: absolute; top: 50%; left: 0; right: 0; 
+  transform: translateY(-50%); display: flex; 
+  justify-content: space-between; padding: 0 20px; z-index: 5; 
+}
+.slider-btn { 
+  width: 50px; height: 50px; border: none; border-radius: 50%; 
+  font-size: 20px; cursor: pointer; background: rgba(41, 158, 157, 0.7); 
+  color: #fff; backdrop-filter: blur(5px); transition: 0.3s;
+}
+.slider-btn:hover { background: var(--primary); }
+.dots { 
+  position: absolute; bottom: 20px; left: 50%; 
+  transform: translateX(-50%); display: flex; gap: 8px; z-index: 5; 
+}
+.dot { 
+  width: 10px; height: 10px; border: none; border-radius: 50%; 
+  background: rgba(255, 255, 255, 0.5); cursor: pointer; transition: 0.3s;
+}
+.dot.active { width: 30px; border-radius: 10px; background: var(--highlight); }
+.lightbox { 
+  position: fixed; inset: 0; background: rgba(0,0,0,.95); 
+  display: none; align-items: center; justify-content: center; z-index: 10000; 
+}
+.lightbox.active { display: flex; }
+.lightbox img { max-width: 90%; max-height: 85%; border-radius: 15px; border: 3px solid var(--primary); }
+.close-lightbox { 
+  position: absolute; top: 20px; left: 20px; width: 45px; height: 45px; 
+  border: none; border-radius: 50%; font-size: 25px; cursor: pointer; 
+  background: var(--highlight); color: white; 
+}
 
+@media(max-width: 768px) { .visual-slider { height: 350px; } }
 </style>
 </head>
 <body>
@@ -890,6 +938,33 @@
         </div>
       </div>
     </section>
+    <section class="slider-section">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">شهادات </span>
+      <h3>مذا قالوا عنا في الجرائد و المجلات</h3>
+    </div>
+    <div class="slider-wrapper">
+      <div class="visual-slider">
+        <div class="slide-item active"><img src="https://drive.google.com/thumbnail?id=1f5wHG5GVabYjrIM42KZe_y0aM3z_QuIO&sz=w2000" data-full="https://drive.google.com/thumbnail?id=1f5wHG5GVabYjrIM42KZe_y0aM3z_QuIO&sz=w4000" alt="صورة من نشاط الجمعية"></div>
+        <div class="slide-item"><img src="https://drive.google.com/thumbnail?id=1zLR2XJhOUyhgwSEvcv9pvlCRnOZZ2M5F&sz=w2000" data-full="https://drive.google.com/thumbnail?id=1zLR2XJhOUyhgwSEvcv9pvlCRnOZZ2M5F&sz=w4000" alt="صورة من نشاط الجمعية"></div>
+        <div class="slide-item"><img src="https://drive.google.com/thumbnail?id=1CpPRKBN1r9CV7iy-tIuUePUNbqic3H-F&sz=w2000" data-full="https://drive.google.com/thumbnail?id=1CpPRKBN1r9CV7iy-tIuUePUNbqic3H-F&sz=w4000" alt="صورة من نشاط الجمعية"></div>
+        <div class="slide-item"><img src="https://drive.google.com/thumbnail?id=1BBYOtKmItH7OCGcPFFiboFy2sjz7eWuI&sz=w2000" data-full="https://drive.google.com/thumbnail?id=1BBYOtKmItH7OCGcPFFiboFy2sjz7eWuI&sz=w4000" alt="صورة من نشاط الجمعية"></div>
+        
+        <div class="controls">
+          <button class="slider-btn" id="prevSlide">❯</button>
+          <button class="slider-btn" id="nextSlide">❮</button>
+        </div>
+        <div class="dots" id="sliderDots"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="lightbox" id="imgLightbox">
+  <button class="close-lightbox" id="closeLight">×</button>
+  <img id="fullSizeImg">
+</div>
 
     <section class="contact" id="contact">
       <div class="container">
@@ -1122,7 +1197,64 @@ ${message}
     }
   });
 </script>
+<script>
+const allSlides = document.querySelectorAll('.slide-item');
+const dotsWrap = document.getElementById('sliderDots');
+let slideIdx = 0;
 
+// إنشاء النقاط تلقائياً
+allSlides.forEach((_, i) => {
+  const d = document.createElement('button');
+  d.className = 'dot';
+  if(i === 0) d.classList.add('active');
+  d.onclick = () => { slideIdx = i; showSlides(); };
+  dotsWrap.appendChild(d);
+});
+
+const allDots = document.querySelectorAll('.dot');
+
+function showSlides() {
+  allSlides.forEach(s => s.classList.remove('active'));
+  allDots.forEach(d => d.classList.remove('active'));
+  allSlides[slideIdx].classList.add('active');
+  allDots[slideIdx].classList.add('active');
+}
+
+document.getElementById('nextSlide').onclick = () => {
+  slideIdx = (slideIdx + 1) % allSlides.length;
+  showSlides();
+};
+
+document.getElementById('prevSlide').onclick = () => {
+  slideIdx = (slideIdx - 1 + allSlides.length) % allSlides.length;
+  showSlides();
+};
+
+// تحريك تلقائي كل 5 ثواني
+setInterval(() => {
+  slideIdx = (slideIdx + 1) % allSlides.length;
+  showSlides();
+}, 5000);
+
+// نظام التكبير (Lightbox)
+const lb = document.getElementById('imgLightbox');
+const lbImg = document.getElementById('fullSizeImg');
+
+document.querySelectorAll('.slide-item img').forEach(img => {
+  img.onclick = () => {
+    lb.classList.add('active');
+    lbImg.src = img.dataset.full;
+    document.body.style.overflow = 'hidden'; // منع التمرير عند التكبير
+  };
+});
+
+document.getElementById('closeLight').onclick = () => {
+  lb.classList.remove('active');
+  document.body.style.overflow = 'auto';
+};
+
+lb.onclick = (e) => { if(e.target === lb) lb.dispatchEvent(new Event('click')); }; // إغلاق عند الضغط خارج الصورة
+</script>
 </body>
 </html>
 
